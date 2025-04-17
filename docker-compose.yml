@@ -1,0 +1,39 @@
+version: "3.9"
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    logging: *default-logging
+    depends_on:
+      - postgres
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    logging: *default-logging
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: strava_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
